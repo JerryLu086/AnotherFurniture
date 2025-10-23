@@ -21,6 +21,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class LampConnectorBlock extends Block implements SimpleWaterloggedBlock {
@@ -120,5 +121,11 @@ public class LampConnectorBlock extends Block implements SimpleWaterloggedBlock 
             case RED -> AFBlocks.RED_LAMP.get();
             case BLACK -> AFBlocks.BLACK_LAMP.get();
         };
+    }
+
+    @Override
+    public @NotNull String getDescriptionId() {
+        Block lamp = getLampByColor(color);
+        return lamp.getDescriptionId();
     }
 }
