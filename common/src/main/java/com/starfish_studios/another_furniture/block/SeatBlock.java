@@ -5,14 +5,12 @@ import com.starfish_studios.another_furniture.registry.AFBlockTags;
 import com.starfish_studios.another_furniture.registry.AFEntityTypeTags;
 import com.starfish_studios.another_furniture.registry.AFRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -94,8 +92,12 @@ public class SeatBlock extends Block {
 
     public static Optional<Entity> getLeashed(Player player) {
         List<Entity> entities = player.level().getEntities((Entity) null, player.getBoundingBox().inflate(10), e -> true);
-        for (Entity e : entities)
+        for (Entity e : entities) {
             if (e instanceof Mob mob && mob.getLeashHolder() == player && canBePickedUp(e)) return Optional.of(mob);
+            if (e instanceof LivingEntity living && !(e instanceof Mob) && canBePickedUp(e)) {
+                return Optional.of(living);
+            }
+        }
         return Optional.empty();
     }
 
