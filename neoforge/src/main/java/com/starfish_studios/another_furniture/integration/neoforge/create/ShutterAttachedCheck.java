@@ -15,10 +15,10 @@ public class ShutterAttachedCheck implements AttachedCheck {
         if (state.getBlock() instanceof ShutterBlock) {
             VerticalConnectionType type = state.getValue(ShutterBlock.VERTICAL);
 
-            if (direction == Direction.DOWN)
-                return type == VerticalConnectionType.MIDDLE || type == VerticalConnectionType.BOTTOM ? CheckResult.SUCCESS : CheckResult.PASS;
-            if (direction == Direction.UP)
-                return type == VerticalConnectionType.TOP || type == VerticalConnectionType.MIDDLE ? CheckResult.SUCCESS : CheckResult.PASS;
+            if (type == VerticalConnectionType.MIDDLE && direction.getAxis().isVertical()
+             || type == VerticalConnectionType.TOP    && direction == Direction.DOWN
+             || type == VerticalConnectionType.BOTTOM && direction == Direction.UP)
+                return CheckResult.SUCCESS;
         }
         return CheckResult.PASS;
     }

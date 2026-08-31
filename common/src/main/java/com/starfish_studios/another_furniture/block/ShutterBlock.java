@@ -2,11 +2,8 @@ package com.starfish_studios.another_furniture.block;
 
 import com.starfish_studios.another_furniture.block.properties.ModBlockStateProperties;
 import com.starfish_studios.another_furniture.block.properties.VerticalConnectionType;
-import com.starfish_studios.another_furniture.item.HammerItem;
-import com.starfish_studios.another_furniture.registry.AFItems;
 import com.starfish_studios.another_furniture.util.block.BlockPart;
 import com.starfish_studios.another_furniture.util.block.HammerableBlock;
-import com.starfish_studios.another_furniture.util.block.TuckableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
@@ -25,7 +22,6 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,8 +29,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 public class ShutterBlock extends Block implements SimpleWaterloggedBlock, HammerableBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -123,7 +117,7 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
     public InteractionResult toggleShutters(BlockState state, Level level, BlockPos pos, Player player) {
         state = state.cycle(OPEN);
         level.setBlock(pos, state, 3);
-        if (player == null || !player.isCrouching()) toggleShutters(state, level, pos, state.getValue(OPEN));
+        if (player == null || !player.isCrouching()) toggleShutters(state, level, pos);
         level.playSound(null, pos, shutterSound(state.getValue(OPEN)), SoundSource.BLOCKS, 1.0F, 1.0F);
 
         if (state.getValue(WATERLOGGED)) level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
@@ -142,7 +136,8 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
 //        toggleHorizontal(state, level, pos, open, facing, relativeRight);
 //    }
 
-    public void toggleShutters(BlockState state, Level level, BlockPos pos, boolean open) {
+    public void toggleShutters(BlockState state, Level level, BlockPos pos) {
+        boolean open = state.getValue(OPEN);
         BlockState updateState = state;
         BlockPos updatePos = pos;
         if (state.getValue(VERTICAL) == VerticalConnectionType.MIDDLE || state.getValue(VERTICAL) == VerticalConnectionType.BOTTOM) {
@@ -190,8 +185,8 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
     }
 
     public VerticalConnectionType getType(BlockState state, BlockState above, BlockState below) {
-        boolean up = isConnected(state, above);
-        boolean down = isConnected(state, below);
+        boolean up = canConnectTo(state, above);
+        boolean down = canConnectTo(state, below);
 
         if (up && down) return VerticalConnectionType.MIDDLE;
         else if (up) return VerticalConnectionType.BOTTOM;
@@ -199,7 +194,7 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
         return VerticalConnectionType.SINGLE;
     }
 
-    public boolean isConnected(BlockState state, BlockState other) {
+    public boolean canConnectTo(BlockState state, BlockState other) {
         return other.is(state.getBlock())
                 //&& other.getValue(VERTICAL) == state.getValue(VERTICAL)
                 && other.getValue(FACING) == state.getValue(FACING)

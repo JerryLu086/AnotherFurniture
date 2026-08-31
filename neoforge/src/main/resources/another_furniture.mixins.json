@@ -8,8 +8,7 @@
 	"mixins": [
 		"FireBlockAccessor",
 		"create.ContraptionMixin",
-		"create.AbstractContraptionEntityMixin",
-		"create.BlockMovementChecksMixin"
+		"create.AbstractContraptionEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

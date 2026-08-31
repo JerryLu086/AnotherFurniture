@@ -1,6 +1,8 @@
 package com.starfish_studios.another_furniture.mixin.neoforge.create;
 
+import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.StructureTransform;
 import com.starfish_studios.another_furniture.block.SeatBlock;
 import com.starfish_studios.another_furniture.entity.SeatEntity;
 import net.minecraft.core.BlockPos;
@@ -15,13 +17,11 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 @Mixin(value = Contraption.class, remap = false)
 public abstract class ContraptionMixin {
@@ -32,12 +32,20 @@ public abstract class ContraptionMixin {
     @Shadow
     protected abstract BlockPos toLocalPos(BlockPos globalPos);
 
-    @Inject(method = "moveBlock", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 7), locals = LocalCapture.CAPTURE_FAILHARD)
+    @Inject(method = "moveBlock", at = @At(value = "JUMP", opcode = Opcodes.IFEQ, ordinal = 17), locals = LocalCapture.CAPTURE_FAILHARD)
     private void moveBlock(Level world, Direction forcedDirection, Queue<BlockPos> frontier,
                            Set<BlockPos> visited, CallbackInfoReturnable<Boolean> cir,
-                           BlockPos pos, BlockState state) {
+                           BlockPos pos, BlockState state) throws AssemblyException {
         if (state.getBlock() instanceof SeatBlock)
             moveAFSeat(world, pos);
+    }
+
+    @Inject(method = "addPassengersToWorld", at = @At(value = "JUMP", opcode = Opcodes.IFNE, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void addPassengersToWorld(Level world, StructureTransform transform, List<Entity> seatedEntities, CallbackInfo ci,
+                                      Iterator itr, Entity seatedEntity, Integer seatIndex, BlockPos seatPos) {
+        if (world.getBlockState(seatPos).getBlock() instanceof SeatBlock && !(SeatBlock.isSeatOccupied(world, seatPos))) {
+            SeatBlock.sitDown(world, seatPos, seatedEntity);
+        }
     }
 
     @Unique

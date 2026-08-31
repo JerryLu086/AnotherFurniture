@@ -12,14 +12,20 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 public class ShutterMovingInteraction extends SimpleBlockMovingInteraction {
 
     protected BlockState handle(Player player, Contraption contraption, BlockPos pos, BlockState currentState) {
-        toggleShutters(currentState, pos, currentState.getValue(ShutterBlock.OPEN), contraption);
+        currentState = currentState.cycle(ShutterBlock.OPEN);
+
+        if (!player.isShiftKeyDown()) {
+            toggleShutters(currentState, contraption, pos);
+        } else {
+            currentState = notifyNeighbors(currentState, contraption, pos);
+        }
+
         this.playSound(player, ShutterBlock.shutterSound(currentState.getValue(ShutterBlock.OPEN)), 1.0F);
-        return currentState.cycle(ShutterBlock.OPEN);
+        return currentState;
     }
 
-    public void toggleShutters(BlockState state, BlockPos pos, boolean open, Contraption contraption) {
-        open = !open;
-
+    public void toggleShutters(BlockState state, Contraption contraption, BlockPos pos) {
+        boolean open = state.getValue(ShutterBlock.OPEN);
         BlockState updateState = state;
         BlockPos updatePos = pos;
         if (state.getValue(ShutterBlock.VERTICAL) == VerticalConnectionType.MIDDLE || state.getValue(ShutterBlock.VERTICAL) == VerticalConnectionType.BOTTOM) {
@@ -53,6 +59,60 @@ public class ShutterMovingInteraction extends SimpleBlockMovingInteraction {
         }
     }
 
+    public BlockState notifyNeighbors(BlockState state, Contraption contraption, BlockPos pos) {
+        StructureTemplate.StructureBlockInfo above = contraption.getBlocks().get(pos.above());
+        if (above != null) {
+            BlockState neighbor = above.state();
+
+            if (neighbor.is(state.getBlock())) {
+                boolean connectionChanged = canConnectTo(state, neighbor)
+                                         != canConnectTo(state.cycle(ShutterBlock.OPEN), neighbor);
+
+                if (connectionChanged) {
+                    state = cycleConnection(state, true);
+                    this.setContraptionBlockData(contraption.entity, pos.above(),
+                            new StructureTemplate.StructureBlockInfo(above.pos(), cycleConnection(neighbor, false), above.nbt()));
+                }
+            }
+        }
+
+        StructureTemplate.StructureBlockInfo below = contraption.getBlocks().get(pos.below());
+        if (below != null) {
+            BlockState neighbor = below.state();
+
+            if (neighbor.is(state.getBlock())) {
+                boolean connectionChanged = canConnectTo(state, neighbor)
+                                                    != canConnectTo(state.cycle(ShutterBlock.OPEN), neighbor);
+
+                if (connectionChanged) {
+                    state = cycleConnection(state, false);
+                    this.setContraptionBlockData(contraption.entity, pos.below(),
+                            new StructureTemplate.StructureBlockInfo(below.pos(), cycleConnection(neighbor, true), below.nbt()));
+                }
+            }
+        }
+
+        return state;
+    }
+
+    public BlockState cycleConnection(BlockState state, boolean top) {
+        return state.setValue(ShutterBlock.VERTICAL, cycleConnection(state.getValue(ShutterBlock.VERTICAL), top));
+    }
+
+    public VerticalConnectionType cycleConnection(VerticalConnectionType type, boolean top) {
+        return VerticalConnectionType.values()[type.ordinal() ^ (top ? 1 : 3)];
+    }
+
+    public boolean canConnectTo(BlockState state, BlockState other) {
+        return other.is(state.getBlock())
+                       //&& other.getValue(VERTICAL) == state.getValue(VERTICAL)
+                       && other.getValue(ShutterBlock.FACING) == state.getValue(ShutterBlock.FACING)
+                       && other.getValue(ShutterBlock.OPEN) == state.getValue(ShutterBlock.OPEN)
+                       && other.getValue(ShutterBlock.HINGE) == state.getValue(ShutterBlock.HINGE)
+                       && other.getValue(ShutterBlock.VARIANT).equals(state.getValue(ShutterBlock.VARIANT));
+    }
+
+    @Override
     protected boolean updateColliders() {
         return true;
     }
