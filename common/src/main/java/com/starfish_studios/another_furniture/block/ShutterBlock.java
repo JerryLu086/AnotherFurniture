@@ -1,5 +1,6 @@
 package com.starfish_studios.another_furniture.block;
 
+import com.mojang.datafixers.util.Pair;
 import com.starfish_studios.another_furniture.block.properties.ModBlockStateProperties;
 import com.starfish_studios.another_furniture.block.properties.VerticalConnectionType;
 import com.starfish_studios.another_furniture.util.block.BlockPart;
@@ -184,7 +185,7 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
         return open ? SoundEvents.WOODEN_TRAPDOOR_OPEN : SoundEvents.WOODEN_TRAPDOOR_CLOSE;
     }
 
-    public VerticalConnectionType getType(BlockState state, BlockState above, BlockState below) {
+    public static VerticalConnectionType getType(BlockState state, BlockState above, BlockState below) {
         boolean up = canConnectTo(state, above);
         boolean down = canConnectTo(state, below);
 
@@ -194,13 +195,30 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
         return VerticalConnectionType.SINGLE;
     }
 
-    public boolean canConnectTo(BlockState state, BlockState other) {
+    public static Pair<BlockState, BlockState> updateConnection(BlockState state, BlockState newState, BlockState neighbor, boolean above) {
+        if (canConnectTo(state, neighbor) != canConnectTo(newState, neighbor)) {
+            newState = cycleConnection(newState, above);
+            neighbor = cycleConnection(neighbor, !above);
+        }
+
+        return Pair.of(newState, neighbor);
+    }
+
+    public static BlockState cycleConnection(BlockState state, boolean top) {
+        return state.setValue(ShutterBlock.VERTICAL, cycleConnection(state.getValue(ShutterBlock.VERTICAL), top));
+    }
+
+    public static VerticalConnectionType cycleConnection(VerticalConnectionType type, boolean top) {
+        return VerticalConnectionType.values()[type.ordinal() ^ (top ? 1 : 3)];
+    }
+
+    public static boolean canConnectTo(BlockState state, BlockState other) {
         return other.is(state.getBlock())
-                //&& other.getValue(VERTICAL) == state.getValue(VERTICAL)
-                && other.getValue(FACING) == state.getValue(FACING)
-                && other.getValue(OPEN) == state.getValue(OPEN)
-                && other.getValue(HINGE) == state.getValue(HINGE)
-                && other.getValue(VARIANT).equals(state.getValue(VARIANT));
+                       //&& other.getValue(VERTICAL) == state.getValue(VERTICAL)
+                       && other.getValue(ShutterBlock.FACING) == state.getValue(ShutterBlock.FACING)
+                       && other.getValue(ShutterBlock.OPEN) == state.getValue(ShutterBlock.OPEN)
+                       && other.getValue(ShutterBlock.HINGE) == state.getValue(ShutterBlock.HINGE)
+                       && other.getValue(ShutterBlock.VARIANT).equals(state.getValue(ShutterBlock.VARIANT));
     }
 
     @Override
