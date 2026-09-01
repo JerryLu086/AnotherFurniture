@@ -135,7 +135,8 @@ public class LampBlock extends Block implements SimpleWaterloggedBlock {
         if (powered != state.getValue(POWERED)) {
             if (state.getValue(LIT) != powered) {
                 state = state.setValue(LIT, powered);
-                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 1.0f, 1.0f);
+                float f = state.getValue(POWERED) ? 0.6F : 0.5F;
+                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, f);
             }
             state = state.setValue(POWERED, powered);
         }
@@ -156,7 +157,8 @@ public class LampBlock extends Block implements SimpleWaterloggedBlock {
 
         }
         level.setBlock(pos, state, 3);
-        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 1.0f, 1.0f);
+        float f = state.getValue(POWERED) ? 0.6F : 0.5F;
+        level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.3F, f);
         return ItemInteractionResult.sidedSuccess(level.isClientSide);
     }
 

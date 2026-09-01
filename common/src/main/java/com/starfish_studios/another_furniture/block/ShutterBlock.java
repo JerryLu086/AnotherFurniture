@@ -118,7 +118,7 @@ public class ShutterBlock extends Block implements SimpleWaterloggedBlock, Hamme
         state = state.cycle(OPEN);
         level.setBlock(pos, state, 3);
         if (player == null || !player.isCrouching()) toggleShutters(state, level, pos);
-        level.playSound(null, pos, shutterSound(state.getValue(OPEN)), SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, pos, shutterSound(state.getValue(OPEN)), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
 
         if (state.getValue(WATERLOGGED)) level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 

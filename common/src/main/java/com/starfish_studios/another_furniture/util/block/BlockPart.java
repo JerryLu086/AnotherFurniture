@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 
-public class BlockPart {
+public final class BlockPart {
 
     // Gives part of the block that was interacted with, starts from 0
     public static int get1D(BlockPos blockPos, Vec3 clickedPos, Direction axisDir, int parts) {

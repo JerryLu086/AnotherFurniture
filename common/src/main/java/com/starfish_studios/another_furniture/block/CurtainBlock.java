@@ -156,7 +156,7 @@ public class CurtainBlock extends Block implements SimpleWaterloggedBlock {
         else toggleFromTop(level.getBlockState(pos.above()), level, pos.above());
 
 
-        level.playSound(null, pos, AFSoundEvents.CURTAIN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, pos, AFSoundEvents.CURTAIN.get(), SoundSource.BLOCKS, 1.0F, level.getRandom().nextFloat() * 0.1F + 0.9F);
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
